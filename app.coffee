@@ -10,6 +10,8 @@ knox        = require 'knox'
 app         = express.createServer()
 port        = process.env.PORT || 3001
 
+S3_PATH     = 'https://s3.amazonaws.com/faceholdit/'
+
 app.use require('connect-assets')(src : 'public')
 
 app.configure ->
@@ -40,38 +42,57 @@ build_fb_photo  = ->
 
         if image_path != '/static-ak/rsrc.php/v2/yL/r/HsTZSDw4avx.gif'
 
-            piped   = request("https://fbcdn-profile-a.akamaihd.net/#{image_path}").pipe(fs.createWriteStream("#{__dirname}/public/fb_images/#{rando}.jpg"))
+            piped = request("https://fbcdn-profile-a.akamaihd.net/#{image_path}").pipe(fs.createWriteStream("#{__dirname}/public/fb_images/#{rando}.jpg"))
             piped.on 'close', ->
                 random = "#{rando}.jpg"
+                console.log random
 
                 knox_client.putFile piped.path, random, (err, res) ->
                     if err == null
+                        fs.unlink "#{__dirname}/public/fb_images/#{rando}.jpg", (delete_err) ->
+                            if delete_err then console.log delete_err
                         redis_client.lpush 'friends', random, (redis_err, redis_res) ->
                             if redis_err then console.log redis_err
 
 
-get_photo_url = (friends_length, index, next) ->
-    rando   = Math.floor(Math.random() * friends_length)
+get_photo_url = (max, index, next) ->
+    rando = Math.floor(Math.random() * max)
     redis_client.lindex 'friends', rando, (err, res) ->
-        s3_url = 'https://s3.amazonaws.com/faceholdit/' + res
+        s3_url = S3_PATH + res
         next(s3_url, index)
+
+
+get_photo_count = (next) ->
+    redis_client.llen 'friends', (err, res) ->
+        next(res)
 
 
 app.get '/', (req, res, next) ->
     res.end()
 
+
+app.get '/image', (req, res, next) ->
+    get_photo_count (photo_count) ->
+        get_photo_url photo_count, 0, (url, index) ->
+            request url, (err, resp, body) ->
+                piped = request(url).pipe(fs.createWriteStream("#{__dirname}/public/from_s3/1.jpg"))
+                piped.on 'close', ->
+                    res.sendfile piped.path
+
+
 app.get '/:number', (req, res, next) ->
 
     if req.params.number > 100 then res.render 'max'
+    else if req.params.number == '1' then res.redirect '/image'
+
     else
         photo_urls  = []
         i           = 0
 
-        redis_client.llen 'friends', (err, redis_res) ->
-            friends_length = redis_res
+        get_photo_count (photo_count) ->
 
             while i < req.params.number
-                get_photo_url friends_length, i, (url, index) ->
+                get_photo_url photo_count, i, (url, index) ->
                     photo_urls.push url
 
                     if index == parseInt(req.params.number - 1)
