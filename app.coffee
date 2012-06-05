@@ -25,7 +25,11 @@ app.configure ->
     app.set 'views', path.join __dirname, 'public/views'
     app.set 'view engine', 'jade'
 
-redis_client    = redis.createClient()
+redis_client    = redis.createClient(2586, '50.30.35.9')
+ 
+redis_client.auth process.env.REDIS_PASS, (err) ->
+    setInterval (-> build_fb_photo() ), 1000
+
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
     secret      : process.env.S3_SECRET
@@ -45,7 +49,6 @@ build_fb_photo  = ->
             piped = request("https://fbcdn-profile-a.akamaihd.net/#{image_path}").pipe(fs.createWriteStream("#{__dirname}/public/fb_images/#{rando}.jpg"))
             piped.on 'close', ->
                 random = "#{rando}.jpg"
-                console.log random
 
                 knox_client.putFile piped.path, random, (err, res) ->
                     if err == null
@@ -99,8 +102,6 @@ app.get '/:number', (req, res, next) ->
                         res.render 'photos', photos : photo_urls
                 i++
 
-
-setInterval (-> build_fb_photo() ), 1000
 
 app.listen port
 console.log 'server running on port ' + port 
