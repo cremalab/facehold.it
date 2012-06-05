@@ -23,7 +23,7 @@ app.configure ->
     app.set 'views', path.join __dirname, 'public/views'
     app.set 'view engine', 'jade'
 
-#redis_client    = redis.createClient()
+redis_client    = redis.createClient()
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
     secret      : process.env.S3_SECRET
@@ -42,28 +42,42 @@ build_fb_photo  = ->
 
             piped   = request("https://fbcdn-profile-a.akamaihd.net/#{image_path}").pipe(fs.createWriteStream("#{__dirname}/public/fb_images/#{rando}.jpg"))
             piped.on 'close', ->
-                knox_client.putFile piped.path, "#{rando}.jpg", (err, res) ->
-                    #save to s3
-                        
+                random = "#{rando}.jpg"
+
+                knox_client.putFile piped.path, random, (err, res) ->
+                    if err == null
+                        redis_client.lpush 'friends', random, (redis_err, redis_res) ->
+                            if redis_err then console.log redis_err
 
 
-get_photo_url = ->
-    rando   = Math.floor(Math.random() * redis_client.llen 'photos') + 1
-    s3_url  = redis_client.lindex rando
-    return s3_url
+get_photo_url = (friends_length, index, next) ->
+    rando   = Math.floor(Math.random() * friends_length)
+    redis_client.lindex 'friends', rando, (err, res) ->
+        s3_url = 'https://s3.amazonaws.com/faceholdit/' + res
+        next(s3_url, index)
 
 
 app.get '/', (req, res, next) ->
     res.end()
 
 app.get '/:number', (req, res, next) ->
-    ###
-    photo_urls = []
-    for x in req.pramas.number
-        photo_urls.push get_photo_url()
 
-    res.render 'photos' photos : photo_urls
-    ###
+    if req.params.number > 100 then res.render 'max'
+    else
+        photo_urls  = []
+        i           = 0
+
+        redis_client.llen 'friends', (err, redis_res) ->
+            friends_length = redis_res
+
+            while i < req.params.number
+                get_photo_url friends_length, i, (url, index) ->
+                    photo_urls.push url
+
+                    if index == parseInt(req.params.number - 1)
+                        res.render 'photos', photos : photo_urls
+                i++
+
 
 setInterval (-> build_fb_photo() ), 1000
 
