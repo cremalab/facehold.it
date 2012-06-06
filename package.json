@@ -1,18 +1,22 @@
 {
-    "name"                  : "facehold.it",
-    "version"               : "1.0.0",
-    "engines"               : {
-        "node"              : "0.6.15",
-        "npm"               :  "1.1.9" 
-   },
-    "dependencies"          : {
-      "express"             : "v2.5.8",
-      "coffee-script"       : "v1.2.0",
-      "jade"                : "v0.20.0",
-      "stylus"              : "v0.22.5",
-      "connect-assets"      : "v2.1.9",
-      "request"             : "v2.9.202",
-      "redis"               : "v0.7.2",
-      "knox"                : "v0.0.9"
-    }
+  "version": "1.0.0-2",
+  "engines": {
+    "node": "0.6.15",
+    "npm": "1.1.9"
+  },
+  "dependencies": {
+    "express": "v2.5.8",
+    "coffee-script": "v1.2.0",
+    "jade": "v0.20.0",
+    "stylus": "v0.22.5",
+    "connect-assets": "v2.1.9",
+    "request": "v2.9.202",
+    "redis": "v0.7.2",
+    "knox": "v0.0.9"
+  },
+  "scripts": {
+    "start": "runner.js"
+  },
+  "name": "faceholdit",
+  "subdomain": "facehold.it.cremalab"
 }
