@@ -28,34 +28,39 @@ app.configure ->
 redis_client    = redis.createClient(2586, '50.30.35.9')
  
 redis_client.auth process.env.REDIS_PASS, (err) ->
-    #setInterval (-> build_fb_photo() ), 1000
+    setInterval (-> build_fb_photo() ), 1000
 
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
     secret      : process.env.S3_SECRET
     bucket      : 'faceholdit'
 
+z = 0
 
 build_fb_photo  = ->
     rando       = Math.floor(Math.random() * 1000000000) + 1
     fb_req      = "https://graph.facebook.com/#{rando}/picture?type=large"
 
-    request.get fb_req, (err, body, response) ->
+    request.get fb_req, (err, resp, body) ->
 
-        image_path = body.socket.pair.cleartext._httpMessage.path
+        if resp.socket
 
-        if image_path != '/static-ak/rsrc.php/v2/yL/r/HsTZSDw4avx.gif'
+            image_path = resp.socket.pair.cleartext._httpMessage.path
 
-            piped = request("https://fbcdn-profile-a.akamaihd.net/#{image_path}").pipe(fs.createWriteStream("#{__dirname}/public/fb_images/#{rando}.jpg"))
-            piped.on 'close', ->
-                random = "#{rando}.jpg"
+            if image_path != '/static-ak/rsrc.php/v2/yL/r/HsTZSDw4avx.gif'
 
-                knox_client.putFile piped.path, random, (err, res) ->
-                    if err == null
-                        fs.unlink "#{__dirname}/public/fb_images/#{rando}.jpg", (delete_err) ->
-                            if delete_err then console.log delete_err
-                        redis_client.lpush 'friends', random, (redis_err, redis_res) ->
-                            if redis_err then console.log redis_err
+                piped = request("https://fbcdn-profile-a.akamaihd.net/#{image_path}").pipe(fs.createWriteStream("#{__dirname}/public/fb_images/#{rando}.jpg"))
+                piped.on 'close', ->
+                    random = "#{rando}.jpg"
+
+                    knox_client.putFile piped.path, random, (err, res) ->
+                        if err == null
+                            fs.unlink "#{__dirname}/public/fb_images/#{rando}.jpg", (delete_err) ->
+                                if delete_err then console.log delete_err
+                            redis_client.lpush 'friends', random, (redis_err, redis_res) ->
+                                if redis_err then console.log redis_err
+                                z++
+                                console.log z
 
 
 get_photo_url = (max, index, next) ->
@@ -78,8 +83,13 @@ app.get '/image', (req, res, next) ->
     get_photo_count (photo_count) ->
         get_photo_url photo_count, 0, (url, index) ->
             request url, (err, resp, body) ->
-                piped = request(url).pipe(fs.createWriteStream("#{__dirname}/public/from_s3/1.jpg"))
+                rando = Math.floor(Math.random() * 1000000)
+                piped = request(url).pipe(fs.createWriteStream("#{__dirname}/public/from_s3/#{rando}.jpg"))
                 piped.on 'close', ->
+                    setTimeout (->
+                        fs.unlink "#{__dirname}/public/from_s3/#{rando}.jpg", (delete_err) ->
+                            console.log delete_err
+                    ), 500
                     res.sendfile piped.path
 
 
