@@ -28,7 +28,7 @@ app.configure ->
 redis_client    = redis.createClient(2586, '50.30.35.9')
  
 redis_client.auth process.env.REDIS_PASS, (err) ->
-    setInterval (-> build_fb_photo() ), 1000
+    setInterval (-> build_fb_photo() ), 250
 
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
@@ -43,11 +43,11 @@ build_fb_photo  = ->
 
     request.get fb_req, (err, resp, body) ->
 
-        if resp.socket
+        if resp
 
             image_path = resp.socket.pair.cleartext._httpMessage.path
 
-            if image_path != '/static-ak/rsrc.php/v2/yL/r/HsTZSDw4avx.gif'
+            if image_path != '/static-ak/rsrc.php/v2/yL/r/HsTZSDw4avx.gif' || image_path != '/static-ak/rsrc.php/v2/yp/r/yDnr5YfbJCH.gif'
                 piped = request("https://fbcdn-profile-a.akamaihd.net/#{image_path}").pipe(fs.createWriteStream("#{__dirname}/public/fb_images/#{rando}.jpg"))
                 piped.on 'close', ->
                     random = "#{rando}.jpg"
