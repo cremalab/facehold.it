@@ -75,10 +75,12 @@ get_photo_count = (next) ->
 
 
 app.get '/', (req, res, next) ->
-    res.redirect '/image'
-
-
+    res.redirect '/picture'
+    
 app.get '/image', (req, res, next) ->
+    res.redirect '/picture'
+    
+app.get '/picture', (req, res, next) ->
     get_photo_count (photo_count) ->
         get_photo_url photo_count, 0, (url, index) ->
             request url, (err, resp, body) ->
@@ -98,7 +100,7 @@ app.get '/image', (req, res, next) ->
 app.get '/:number', (req, res, next) ->
 
     if req.params.number > 100 then res.render 'max'
-    else if req.params.number == '1' then res.redirect '/image'
+    else if req.params.number == '1' then res.redirect '/picture'
 
     else
         photo_urls  = []
