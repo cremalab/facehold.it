@@ -28,7 +28,7 @@ app.configure ->
 redis_client    = redis.createClient(2586, '50.30.35.9')
  
 redis_client.auth process.env.REDIS_PASS, (err) ->
-    setInterval (-> build_fb_photo() ), 1000
+    #setInterval (-> build_fb_photo() ), 1000
 
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
