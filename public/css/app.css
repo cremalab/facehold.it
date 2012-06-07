@@ -6,6 +6,15 @@
 
 * { margin: 0; padding: 0; }
 
+.hero-unit{background:none; padding : 40px 60px 0px;}
+.hero-unit h1{margin-bottom : 10px;}
+.hero-unit form{margin: 0 0 10px 10px;}
+.hero-unit input{margin-right : 5px;}
+p.mini{font-size:100%; line-height:175%;}
+pre.mini{display:inline;}
+p pre{font-size:100%;}
+form.well{float : right;}
+
 #photos {
    /* Prevent vertical gaps */
    line-height: 0;
@@ -22,6 +31,7 @@
   /* Just in case there are inline attributes */
   width: 100% !important;
   height: auto !important;
+  margin : 10px 10px 0 10px;
 }
 
 @media (max-width: 1200px) {

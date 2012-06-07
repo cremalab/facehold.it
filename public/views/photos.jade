@@ -1,3 +1,4 @@
 #photos
     each photo in photos
-        img(src= photo)
+        a(target="blank", href="http://facebook.com/#{photo}")
+            img(src= "https://s3.amazonaws.com/faceholder/#{photo}.jpg")

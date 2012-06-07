@@ -10,12 +10,9 @@ knox        = require 'knox'
 app         = express.createServer()
 port        = process.env.PORT || 3001
 
-S3_PATH     = 'https://s3.amazonaws.com/faceholdit/'
-
 app.use require('connect-assets')(src : 'public')
 
 app.configure ->
-    #app.use express.logger format: ':method :url :status'
     app.use express.static path.join __dirname, 'public'
     app.use stylus.middleware
         debug: true
@@ -26,16 +23,19 @@ app.configure ->
     app.set 'view engine', 'jade'
 
 redis_client    = redis.createClient(2586, '50.30.35.9')
- 
+
 redis_client.auth process.env.REDIS_PASS, (err) ->
-    setInterval (-> build_fb_photo() ), 250
+    if err then console.error "#{err} could not authenticate with redis"
+    get_photo_int = setInterval (-> build_fb_photo() ), 250
 
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
     secret      : process.env.S3_SECRET
-    bucket      : 'faceholdit'
+    bucket      : 'faceholder'
 
 z = 0
+
+get_photo_int   = 0
 
 build_fb_photo  = ->
     rando       = Math.floor(Math.random() * 1000000000) + 1
@@ -43,58 +43,83 @@ build_fb_photo  = ->
 
     request.get fb_req, (err, resp, body) ->
 
+        if err
+            console.error 'rate limiting from facebook. pausing job, will restart in 30 seconds'
+            clearInterval(get_photo_int)
+            setTimeout (->
+                console.log 'restarting job to get photos from facebook'
+                get_photo_int = setInterval (-> build_fb_photo() ), 500
+            ), 30000
+
         if resp
 
             image_path = resp.socket.pair.cleartext._httpMessage.path
 
-            if image_path != '/static-ak/rsrc.php/v2/yL/r/HsTZSDw4avx.gif' || image_path != '/static-ak/rsrc.php/v2/yp/r/yDnr5YfbJCH.gif'
+            if image_path == '/static-ak/rsrc.php/v2/yL/r/HsTZSDw4avx.gif' || image_path == '/static-ak/rsrc.php/v2/yp/r/yDnr5YfbJCH.gif'
+                return false
+            else
                 piped = request("https://fbcdn-profile-a.akamaihd.net/#{image_path}").pipe(fs.createWriteStream("#{__dirname}/public/fb_images/#{rando}.jpg"))
+                piped.on 'error', (pipe_err) ->
+                    console.error 'could not write photo from facebook to file system'
+                    console.error pipe_err
                 piped.on 'close', ->
                     random = "#{rando}.jpg"
 
                     knox_client.putFile piped.path, random, (err, res) ->
-                        if err == null
+                        if err
+                            console.error 'error writing to s3 server'
+                            console.error err
+                        else
                             fs.unlink "#{__dirname}/public/fb_images/#{rando}.jpg", (delete_err) ->
-                                if delete_err then console.log delete_err
-                            redis_client.lpush 'friends', random, (redis_err, redis_res) ->
-                                if redis_err then console.log redis_err
-                                z++
-                                console.log z
+                                if delete_err
+                                    console.error 'could not clean up file'
+                                    console.error delete_err
+                            redis_client.lpush 'friends', rando, (redis_err, redis_res) ->
+                                if redis_err
+                                    console.error 'could not write to remote redis server'
+                                    console.error redis_err
+                                else
+                                    z++
+                                    console.log "#{z} new photos added"
 
 
 get_photo_url = (max, index, next) ->
     rando = Math.floor(Math.random() * max)
     redis_client.lindex 'friends', rando, (err, res) ->
-        s3_url = S3_PATH + res
-        next(s3_url, index)
+        if err then console.error "could not find record in database #{err}"
+        else next(res, index)
 
 
 get_photo_count = (next) ->
     redis_client.llen 'friends', (err, res) ->
-        next(res)
+        if err then console.error "could not get record length from database #{err}"
+        else next(res)
 
 
 app.get '/', (req, res, next) ->
     res.redirect '/picture'
-    
-app.get '/image', (req, res, next) ->
-    res.redirect '/picture'
+
     
 app.get '/picture', (req, res, next) ->
     get_photo_count (photo_count) ->
         get_photo_url photo_count, 0, (url, index) ->
-            request url, (err, resp, body) ->
-                rando = Math.floor(Math.random() * 1000000)
-                piped = request(url).pipe(fs.createWriteStream("#{__dirname}/public/from_s3/#{rando}.jpg"))
-                piped.on 'error', (err) ->
-                    console.log 'error making image'
-                    console.log err
-                piped.on 'close', ->
-                    setTimeout (->
-                        fs.unlink "#{__dirname}/public/from_s3/#{rando}.jpg", (delete_err) ->
-                            if delete_err then console.log delete_err
-                    ), 500
-                    res.sendfile piped.path
+            photo_url = "https://s3.amazonaws.com/faceholder/#{url}.jpg"
+            request.get photo_url, (err, resp, body) ->
+                if err
+                    console.error "request to s3 failed"
+                    console.error err
+                else
+                    rando = Math.floor(Math.random() * 1000000)
+                    piped = request(photo_url).pipe(fs.createWriteStream("#{__dirname}/public/from_s3/#{rando}.jpg"))
+                    piped.on 'error', (err) ->
+                        console.error "error writing single image to server #{err}"
+                    piped.on 'close', ->
+                        console.log 'served 1 image'
+                        setTimeout (->
+                            fs.unlink "#{__dirname}/public/from_s3/#{rando}.jpg", (delete_err) ->
+                                if delete_err then console.error "could not delete photo from file system #{delete_err}"
+                        ), 500
+                        res.sendfile piped.path
 
 
 app.get '/:number', (req, res, next) ->
@@ -113,6 +138,7 @@ app.get '/:number', (req, res, next) ->
                     photo_urls.push url
 
                     if index == parseInt(req.params.number - 1)
+                        console.log "#{req.params.number} photos served"
                         res.render 'photos', photos : photo_urls
                 i++
 
