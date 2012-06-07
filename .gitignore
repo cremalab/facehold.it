@@ -14,6 +14,4 @@ results
 node_modules
 npm-debug.log
 .DS_Store
-fb_images
 ENV_VARS
-redis-2.4.14

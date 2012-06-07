@@ -27,8 +27,8 @@ redis_client    = redis.createClient(2586, '50.30.35.9')
 
 redis_client.auth process.env.REDIS_PASS, (err) ->
     if err then console.error "#{err} could not authenticate with redis"
-    
-    if env != 'production'
+
+    if env == 'development'
         get_photo_int = setInterval (-> build_fb_photo() ), 250
 
 knox_client     = knox.createClient
@@ -130,4 +130,4 @@ app.get '/:number', (req, res, next) ->
 
 
 app.listen port
-console.log 'server running on port ' + port 
+console.log "server running on port #{port} in #{env} environment"
