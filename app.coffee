@@ -103,23 +103,7 @@ app.get '/', (req, res, next) ->
 app.get '/picture', (req, res, next) ->
     get_photo_count (photo_count) ->
         get_photo_url photo_count, 0, (url, index) ->
-            photo_url = "https://s3.amazonaws.com/faceholder/#{url}.jpg"
-            request.get photo_url, (err, resp, body) ->
-                if err
-                    console.error "request to s3 failed"
-                    console.error err
-                else
-                    rando = Math.floor(Math.random() * 1000000)
-                    piped = request(photo_url).pipe(fs.createWriteStream("#{__dirname}/public/from_s3/#{rando}.jpg"))
-                    piped.on 'error', (err) ->
-                        console.error "error writing single image to server #{err}"
-                    piped.on 'close', ->
-                        console.log 'served 1 image'
-                        setTimeout (->
-                            fs.unlink "#{__dirname}/public/from_s3/#{rando}.jpg", (delete_err) ->
-                                if delete_err then console.error "could not delete photo from file system #{delete_err}"
-                        ), 500
-                        res.sendfile piped.path
+            res.redirect "https://s3.amazonaws.com/faceholder/#{url}.jpg"
 
 
 app.get '/:number', (req, res, next) ->
