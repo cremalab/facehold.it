@@ -17,6 +17,10 @@
   "scripts": {
     "start": "runner.js"
   },
+  "domains" : [
+    "facehold.it",
+    "www.facehold.it"
+  ],
   "name": "faceholdit",
   "subdomain": "facehold.it.cremalab"
 }
