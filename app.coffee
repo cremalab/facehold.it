@@ -26,7 +26,9 @@ redis_client    = redis.createClient(2586, '50.30.35.9')
 
 redis_client.auth process.env.REDIS_PASS, (err) ->
     if err then console.error "#{err} could not authenticate with redis"
-    get_photo_int = setInterval (-> build_fb_photo() ), 250
+
+    if process.env.environment != 'production'
+        get_photo_int = setInterval (-> build_fb_photo() ), 250
 
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
@@ -122,7 +124,6 @@ app.get '/:number', (req, res, next) ->
                     photo_urls.push url
 
                     if index == parseInt(req.params.number - 1)
-                        console.log "#{req.params.number} photos served"
                         res.render 'photos', photos : photo_urls
                 i++
 
