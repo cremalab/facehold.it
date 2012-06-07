@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-13",
+  "version": "1.0.0-15",
   "engines": {
     "node": "0.6.15",
     "npm": "1.1.9"
@@ -17,7 +17,7 @@
   "scripts": {
     "start": "runner.js"
   },
-  "domains" : [
+  "domains": [
     "facehold.it",
     "www.facehold.it"
   ],

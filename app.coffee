@@ -48,7 +48,7 @@ build_fb_photo  = ->
             clearInterval(get_photo_int)
             setTimeout (->
                 console.log 'restarting job to get photos from facebook'
-                get_photo_int = setInterval (-> build_fb_photo() ), 500
+                get_photo_int = setInterval (-> build_fb_photo() ), 25
             ), 30000
 
         if resp
