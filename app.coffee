@@ -9,6 +9,7 @@ redis       = require 'redis'
 knox        = require 'knox'
 app         = express.createServer()
 port        = process.env.PORT || 3001
+env         = process.env.environment || 'development'
 
 app.use require('connect-assets')(src : 'public')
 
@@ -26,8 +27,8 @@ redis_client    = redis.createClient(2586, '50.30.35.9')
 
 redis_client.auth process.env.REDIS_PASS, (err) ->
     if err then console.error "#{err} could not authenticate with redis"
-
-    if process.env.environment != 'production'
+    console.log env
+    if env != 'production'
         get_photo_int = setInterval (-> build_fb_photo() ), 250
 
 knox_client     = knox.createClient
