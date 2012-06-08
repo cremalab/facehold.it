@@ -30,6 +30,8 @@ redis_client.auth process.env.REDIS_PASS, (err) ->
 
     if env == 'development'
         get_photo_int = setInterval (-> build_fb_photo() ), 250
+    else
+        get_photo_int = setInterval (-> build_fb_photo() ), 2000
 
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
