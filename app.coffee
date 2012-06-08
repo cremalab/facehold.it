@@ -10,6 +10,9 @@ knox        = require 'knox'
 app         = express.createServer()
 port        = process.env.PORT || 3001
 env         = process.env.environment || 'development'
+fb_int      = 3000
+
+if env == 'development' then fb_int = 3000
 
 app.use require('connect-assets')(src : 'public')
 
@@ -27,18 +30,12 @@ redis_client    = redis.createClient(2586, '50.30.35.9')
 
 redis_client.auth process.env.REDIS_PASS, (err) ->
     if err then console.error "#{err} could not authenticate with redis"
-
-    if env == 'development'
-        get_photo_int = setInterval (-> build_fb_photo() ), 250
-    else
-        get_photo_int = setInterval (-> build_fb_photo() ), 2000
+    get_photo_int = setInterval (-> build_fb_photo() ), fb_int
 
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
     secret      : process.env.S3_SECRET
     bucket      : 'faceholder'
-
-z = 0
 
 get_photo_int   = 0
 
@@ -46,18 +43,15 @@ build_fb_photo  = ->
     rando       = Math.floor(Math.random() * 1000000000) + 1
     fb_req      = "https://graph.facebook.com/#{rando}/picture?type=large"
 
-    request.get fb_req, (err, resp, body) ->
+    request
+        method  : 'GET'
+        url     : fb_req
+        timeout : 1500
+    , (err, resp, body) ->
 
-        if err
-            console.error 'rate limiting from facebook. pausing job, will restart in 30 seconds'
-            clearInterval(get_photo_int)
-            setTimeout (->
-                console.log 'restarting job to get photos from facebook'
-                get_photo_int = setInterval (-> build_fb_photo() ), 25
-            ), 30000
+        if err then console.error 'rate limiting from facebook.'
 
         if resp
-
             image_path = resp.socket.pair.cleartext._httpMessage.path
 
             if image_path == '/static-ak/rsrc.php/v2/yL/r/HsTZSDw4avx.gif' || image_path == '/static-ak/rsrc.php/v2/yp/r/yDnr5YfbJCH.gif'
@@ -83,9 +77,6 @@ build_fb_photo  = ->
                                 if redis_err
                                     console.error 'could not write to remote redis server'
                                     console.error redis_err
-                                else
-                                    z++
-                                    console.log "#{z} new photos added"
 
 
 get_photo_url = (max, index, next) ->
