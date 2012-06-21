@@ -30,7 +30,8 @@ redis_client    = redis.createClient(2586, '50.30.35.9')
 
 redis_client.auth process.env.REDIS_PASS, (err) ->
     if err then console.error "#{err} could not authenticate with redis"
-    get_photo_int = setInterval (-> build_fb_photo() ), fb_int
+    if env != 'production'
+        get_photo_int = setInterval (-> build_fb_photo() ), fb_int
 
 knox_client     = knox.createClient
     key         : process.env.S3_KEY
