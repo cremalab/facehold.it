@@ -2,28 +2,31 @@
 html
     head
         title facehold.it
-        link(rel='stylesheet', href='/css/bootstrap.min.css')
-        link(rel='stylesheet', href='/css/bootstrap-responsive.min.css')
         link(rel='stylesheet', href='/css/app.css')
         script(src='http://code.jquery.com/jquery-1.7.2.min.js')
-        script(src='js/bootstrap.min.js')
         script(src='js/main.js')
+        meta(name='viewport', content='initial-scale = 1.3, user-scalable = no')
+
 
     body
-        .container-fluid
-            .modal.intro.hide.fade
-                
-                .hero-unit
-                    a.close(href='#', data-dismiss='modal') &times;
-                    h1 Faceholder!
-                    form.form-horizontal.well
-                        input.input-mini(type='text', placeholder='20')
-                        button.btn.btn-primary(href='#') Go
-                    p Use Faceholder to look at random people's Facebook photos like a total creepster. It's fun. You can also use FaceHolder to populate your site with a random collection of faces. Simply add:
-                    pre
-                        <img src='http://faceholder.com' />
-                    p.mini Your browser will only reach out once per url. To include multiple faceholder placeholders, append query strings to the end of the image tag (ex http://faceholder.com?q=1)
-                    
-            != body
-        include _analytics.html
 
+        header
+            #logo 
+            a#refresh
+            #info
+
+       .info-content
+            section.intro
+                h2  What the heck?
+                p.important  Facehold.it is a simple service that provides facebook profile pictures for developers & designers to use as placeholders in their projects.
+
+            section.how
+                h3  How to use it in your code
+                p   Use the following code as the source URL for your image or background and facehold.it will grab a random one for you.
+
+            section.more
+                h3  Need more control?
+                p   Refresh the page untill you see what you want, then copy the direct link or grab the photo for use in your design mockup.
+
+        != body
+        include _analytics.html
