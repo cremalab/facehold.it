@@ -93,17 +93,51 @@ get_photo_count = (next) ->
         else next(res)
 
 
+
 app.get '/', (req, res, next) ->
     if req.headers.referrer
         res.redirect '/pic'
     else
         res.redirect '/25'
 
+
     
 app.get '/pic', (req, res, next) ->
     get_photo_count (photo_count) ->
         get_photo_url photo_count, 0, (url, index) ->
             res.redirect "https://s3.amazonaws.com/faceholder/#{url}.jpg"
+
+
+
+fb_locales = JSON.parse(fs.readFileSync('./fb_locales.js','utf-8'))
+
+app.get '/hubot', (req, res, next) ->
+    get_photo_count (photo_count) ->
+        get_photo_url photo_count, 0, (id, index) ->
+
+            fb_req      = "https://graph.facebook.com/#{id}"
+
+            request
+                method  : 'GET'
+                url     : fb_req
+                timeout : 1500
+            , (err, resp, body) ->
+
+                fb_body = JSON.parse(body)
+               
+                locale == 'American'
+                for location in fb_locales
+                    if location.fb_code == fb_body.locale
+                        locale = location.nationality
+
+                res.send
+                    id          : fb_body.id
+                    name        : fb_body.name
+                    gender      : fb_body.gender
+                    nationality : locale
+                    url         : fb_req
+                    image       : "https://s3.amazonaws.com/faceholder/#{id}.jpg"
+
 
 
 app.get '/:number', (req, res, next) ->
