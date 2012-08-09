@@ -11,22 +11,27 @@ html
     body
 
         header
-            #logo 
-            a#refresh
-            #info
+            pre
+                <img src='http://facehold.it' />
+            h1 Facehold.it
 
-       .info-content
+
+       section.info
+
             section.intro
-                h2  What the heck?
-                p.important  Facehold.it is a simple service that provides facebook profile pictures for developers & designers to use as placeholders in their projects.
-
-            section.how
-                h3  How to use it in your code
-                p   Use the following code as the source URL for your image or background and facehold.it will grab a random one for you.
-
-            section.more
-                h3  Need more control?
-                p   Refresh the page untill you see what you want, then copy the direct link or grab the photo for use in your design mockup.
+                h2 Facehold.it is a simple service that provides facebook profile pictures for developers & designers to use as placeholders in their projects.
+                div
+                    h3 Developer
+                    ='Paste in '
+                    pre
+                        <img src='http://facehold.it' />
+                    ='anywhere on your site to generate a placeholder image, or use it as a background-image. To prevent your browser from serving the same image, append a query string to the end of the resource call - '
+                    br
+                    pre
+                        <img src='http://facehold.it?id=1' />
+                div.second
+                    h3 Designer 
+                    p Refresh the page untill you see what you want, then copy the direct link or grab the photo for use in your design mockup. For extra fun, click on profiles to learn more about each person. Change the URL to generate more photos eg. <a href='http://facehold.it/50'>http://facehold.it/50</a>
 
         != body
         include _analytics.html
