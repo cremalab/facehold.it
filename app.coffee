@@ -94,10 +94,13 @@ get_photo_count = (next) ->
 
 
 app.get '/', (req, res, next) ->
-    res.redirect '/picture'
+    if req.headers.referrer
+        res.redirect '/pic'
+    else
+        res.redirect '/25'
 
     
-app.get '/picture', (req, res, next) ->
+app.get '/pic', (req, res, next) ->
     get_photo_count (photo_count) ->
         get_photo_url photo_count, 0, (url, index) ->
             res.redirect "https://s3.amazonaws.com/faceholder/#{url}.jpg"
@@ -106,7 +109,7 @@ app.get '/picture', (req, res, next) ->
 app.get '/:number', (req, res, next) ->
 
     if req.params.number > 100 then res.render 'max'
-    else if req.params.number == '1' then res.redirect '/picture'
+    else if req.params.number == '1' then res.redirect '/pic'
 
     else
         photo_urls  = []
