@@ -130,12 +130,14 @@ app.get '/hubot', (req, res, next) ->
                     if location.fb_code == fb_body.locale
                         locale = location.nationality
 
+                console.log fb_body
+
                 res.send
                     id          : fb_body.id
                     name        : fb_body.name
                     gender      : fb_body.gender
+                    url         : fb_body.link
                     nationality : locale
-                    url         : fb_req
                     image       : "https://s3.amazonaws.com/faceholder/#{id}.jpg"
 
 
