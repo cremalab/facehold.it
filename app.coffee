@@ -7,6 +7,7 @@ http        = require 'http'
 request     = require 'request'
 redis       = require 'redis'
 knox        = require 'knox'
+bootstrap   = require 'bootstrap-stylus'
 app         = express.createServer()
 port        = process.env.PORT || 3001
 env         = process.env.environment || 'development'
@@ -14,17 +15,12 @@ fb_int      = 3000
 
 if env == 'development' then fb_int = 3000
 
-app.use require('connect-assets')(src : 'public')
+app.use require('connect-assets')()
+    
+app.set 'views', path.join __dirname, 'views'
+app.set 'view engine', 'jade'
 
-app.configure ->
-    app.use express.static path.join __dirname, 'public'
-    app.use stylus.middleware
-        debug: true
-        force: true
-        src: "#{__dirname}/public"
-        dest: "#{__dirname}/public"
-    app.set 'views', path.join __dirname, 'public/views'
-    app.set 'view engine', 'jade'
+app.use express.static path.join __dirname, 'public'
 
 redis_client    = redis.createClient(2586, '50.30.35.9')
 

@@ -1,3 +1,5 @@
+@import bootstrap
+
 *
     margin                  0
     padding                 0
@@ -6,7 +8,6 @@
 pre
     font-size               13px
     font-family             'Courier', 'Monospace'
-    opacity                 .8
     font-weight             bold
     display                 inline
 
@@ -17,11 +18,13 @@ header
     padding                 10px
 
     h1
-        font-size           18px
-
+        color               #fff
+        font-size           200%
+        margin-bottom       0
     pre
         float               right
         margin-right        20px
+        color               black
 
 section.info
     margin                  20px 30px 10px
@@ -35,18 +38,25 @@ section.info
     h3
         margin-bottom       10px
         font-size           18px
-    div
+    div.content
         float               left
         width               45.25%
         padding             2%
         background-color    rgba(0,0,0,.1)
         overflow            hidden
-        margin-bottom       -100px
+        margin-bottom       -80px
         padding-bottom      100px
     div.second
         float               right
+    div.mobile_info
+        display             none
+        float               none
+        width               100%
     p
         margin-bottom       15px
+    pre
+        font-size           85%
+        padding             5px
 
 
 #photos
@@ -89,8 +99,19 @@ section.info
         -webkit-column-count    2
         column-count            2
 
-@media (max-width: 400px)
+@media (max-width: 520px)
     #photos
         -moz-column-count       1
         -webkit-column-count    1
         column-count            1
+    header 
+        h1
+            text-align          center
+        pre
+            display             none
+    section.info
+        div.content
+            display             none
+        div.mobile_info
+            display             block
+        display                 block
