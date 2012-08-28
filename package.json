@@ -12,7 +12,9 @@
     "connect-assets": "v2.1.9",
     "request": "v2.9.202",
     "redis": "v0.7.2",
-    "knox": "v0.0.9"
+    "knox": "v0.0.9",
+    "bootstrap-stylus": "v0.2.1",
+    "nib": "v0.8.1"
   },
   "scripts": {
     "start": "runner.js"
