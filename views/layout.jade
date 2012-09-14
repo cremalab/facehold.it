@@ -8,9 +8,10 @@ html
     body
 
         header
-            pre
-                <img src='http://facehold.it/pic' />
-            h1 Facehold.it
+            section.content
+                h1 Facehold.it
+                pre
+                    <img src='http://facehold.it/pic' />
 
 
        section.info
@@ -35,6 +36,12 @@ html
                     pre
                         <img src='http://facehold.it/pic' />
                     ='anywhere on your site to generate a placeholder image.'
+        footer
+            section.content
+                small 
+                    = 'Created by'
+                    a#cremalab-logo(href='http://cremalab.com', target='_blank') Cremalab
+                
 
         != body
         include _analytics.html
